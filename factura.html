@@ -1,109 +1,167 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-  <style>
-    body{  
-      text-align: center;
-      align-content: center;
-      height: 100%;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Factura Emmanuel</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <h1>Factura</h1>
 
-    h1{
-      text-align: left;
-    }
+    <!-- Inputs para el concepto, cantidad y precio -->
+    <label for="">Concepto</label>
+    <input type="text" name="concepto" />
+    <br /><br />
 
-    .rojo{
-      color: red;
-    }
+    <label for="">Cantidad</label>
+    <input type="number" name="cantidad" />
+    <br /><br />
 
-    table, th, td{
-      border-collapse: collapse;
-      border: solid blue 0.5px;
-      margin: 0 auto;
-      padding: 10px;
-    }
+    <label for="">Precio</label>
+    <input type="number" name="precio" />€ <br /><br />
 
-    thead{
-      background-color: darkblue;
-      color: white;
-    }
+    <button onclick="insert()">Insertar</button>
+    <br /><br />
 
-    tfoot{
-      text-align: right;
-      background-color: lightblue
-    }
-  </style>
-</head>
-<body>
-  <h1>Factura</h1>
-  <label for="">Concepto</label>
-  <input type="text" name="" id="">
-  <br><br>
+    <!-- Tabla para mostrar la factura -->
+    <table>
+      <thead>
+        <tr>
+          <th>Concepto</th>
+          <th>Cantidad</th>
+          <th>Precio Unitario</th>
+          <th>Precio Total</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+      <tfoot>
+        <tr>
+          <th colspan="3">Subtotal</th>
+          <td id="subtotal">-.--€</td>
+          <th></th>
+        </tr>
+        <tr>
+          <th>Tasa:</th>
+          <th id="tasa">--%</th>
+          <th>Impuestos:</th>
+          <td id="impuesto">-.--€</td>
+          <th></th>
+        </tr>
+        <tr>
+          <th colspan="3">TOTAL</th>
+          <th id="total">-.--€</th>
+          <th></th>
+        </tr>
+      </tfoot>
+    </table>
 
-  <label for="">Cantidad</label>
-  <input type="number" name="" id="">
-  <br><br>
+    <!-- Botones para aplicar tasas -->
+    <p>
+      <button onclick="chooseRate(5)">Tasa 5%</button>
+      <button onclick="chooseRate(15)">Tasa 15%</button>
+      <button onclick="chooseRate(30)">Tasa 30%</button>
+    </p>
 
-  <label for="">Precio</label>
-  <input type="number" name="" id="">€
-  <br><br>
-  <button type="submit">Insertar</button>
-  <br><br>
+    <button onclick="">Calcular</button>
 
+    <script>
+      const tbody = document.querySelector("tbody"); // Selecciona el cuerpo de la tabla
 
-<table>
-  <thead>
-    <tr>
-      <th>Concepto</th>
-      <th>Cantidad</th>
-      <th>Precio Unitario</th>
-      <th>Precio Total</th>
-      <th> </th>
-    </tr> 
-  </thead>
-  <tbody>
+      // Inserta una nueva fila en la tabla con los datos de los input
+      function insert() {
+        const inputs = document.querySelectorAll("input"); // Obtiene todos los inputs
 
-  </tbody>
-  <tfoot>
-    <tr>
-      <th colspan="3">Subtotal</th>
-      <td>-.--€</td>
-      <th> </th>
-    </tr>
-    <tr>
-      <th>Tasa:</th>
-      <th class="rojo">--%</th>
-      <th>Impuestos</th>
-      <td>-.--€</td>
-      <th> </th>
-    </tr>
-    <tr>
-      <th colspan="3">TOTAL</th>
-      <th>-.--€</th>
-      <th> </th>
-    </tr>
-  </tfoot>
-</table>
+        // Verifica si todos los campos están llenos
+        if (areAllFilled(inputs)) {
+          tbody.innerHTML += `
+          <tr>
+            <td>${inputs[0].value}</td>
+            <td>${inputs[1].value}€</td>
+            <td>${inputs[2].value}€</td>
+            <td>${(inputs[1].value * inputs[2].value).toFixed(2)}€</td>
+            <td onclick="deleteRow(this)">X</td>
+          </tr>`;
+          update();
+        }
+      }
 
-<p>
-  <button onclick="">Tasa 5%</button>
-  <button onclick="">Tasa 15%</button>
-  <button onclick="">Tasa 30%</button>
-</p>
+      // Calcula el subtotal de los precios totales de cada fila
+      function updateSubtotal() {
+        const subtotal = document.getElementById("subtotal");
+        let sum = 0;
+        for (let i = 0; i < tbody.children.length; i++) {
+          sum += parseFloat(tbody.children[i].children[3].textContent);
+        }
+        subtotal.textContent = sum.toFixed(2) + "€"; // Actualiza el subtotal en la tabla
+      }
 
-<button onclick="">Calcular</button>
+      let selectedRate = null; // Variable para almacenar la tasa elegida
 
-<script>
+      // Establece la tasa seleccionada y actualiza el impuesto
+      function chooseRate(rate) {
+        if (tbody.children.length > 0) {
+          selectedRate = rate;
+          document.getElementById("tasa").textContent = rate + "%";
+          updateTax(); // Actualiza el impuesto
+        }
+      }
 
-function insert(){
-  const table = document.querySelector('table');
-  
-}
-  
-  
-</script>
-</body>
+      // Calcula el impuesto basado en el subtotal y la tasa
+      function updateTax() {
+        if (selectedRate !== null) {
+          const subtotalValue = parseFloat(
+            document.getElementById("subtotal").textContent.slice(0, -1)
+          );
+          const rateValue = parseFloat(
+            document.getElementById("tasa").textContent.slice(0, -1)
+          );
+          const taxValue = subtotalValue * (rateValue / 100);
+          document.getElementById("impuesto").textContent =
+            taxValue.toFixed(2) + "€";
+          updateTotal(); // Actualiza el precio total
+        }
+      }
+
+      // Calcula el precio total sumando el subtotal y el impuesto
+      function updateTotal() {
+        let result;
+        const subtotalValue = parseFloat(
+          document.getElementById("subtotal").textContent.slice(0, -1)
+        );
+        const taxValue =
+          selectedRate !== null
+            ? parseFloat(
+                document.getElementById("impuesto").textContent.slice(0, -1)
+              )
+            : 0;
+        result = subtotalValue + taxValue;
+        document.getElementById("total").textContent = result.toFixed(2) + "€";
+      }
+
+      // Elimina la fila seleccionada y actualiza los cálculos
+      function deleteRow(element) {
+        const row = element.closest("tr");
+        row.remove(); // Elimina la fila
+        update();
+      }
+
+      // Verifica que todos los inputs estén llenos
+      function areAllFilled(inputs) {
+        for (let i = 0; i < inputs.length; i++) {
+          if (inputs[i].value.trim() === "") {
+            return false; // Si algún campo está vacío, devuelve false
+          }
+        }
+        return true; // Si todos tienen valor, devuelve true
+      }
+
+      function update() {
+        updateSubtotal(); // Actualiza el subtotal
+        updateTax(); // Actualiza el impuesto
+        updateTotal(); // Actualiza el precio total
+      }
+    </script>
+  </body>
 </html>
